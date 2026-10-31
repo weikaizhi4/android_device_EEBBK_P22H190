@@ -1,0 +1,7 @@
+type sysfs_scene_frequency, fs_type, sysfs_type;
+type sysfs_backlight, fs_type, sysfs_type;
+type sysfs_sensorhub, fs_type, sysfs_type;
+type power_resource_device, dev_type;
+type vendor_zram_device, dev_type;
+type wifi_module_file, file_type, vendor_file_type;
+type wifi_fw_data_file, file_type, data_file_type;

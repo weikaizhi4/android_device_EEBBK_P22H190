@@ -1,0 +1,14 @@
+type hal_eebbk_enhance_default, domain;
+type hal_eebbk_enhance_default_exec, exec_type, vendor_file_type, file_type;
+type hal_eebbk_enhance_hwservice, hwservice_manager_type;
+
+init_daemon_domain(hal_eebbk_enhance_default)
+hwbinder_use(hal_eebbk_enhance_default)
+add_hwservice(hal_eebbk_enhance_default, hal_eebbk_enhance_hwservice)
+allow hal_eebbk_enhance_default hal_eebbk_enhance_hwservice:hwservice_manager add;
+get_prop(hal_eebbk_enhance_default, hwservicemanager_prop)
+allow hal_eebbk_enhance_default sysfs:file rw_file_perms;
+allow hal_eebbk_enhance_default unlabeled:dir search;
+allow hal_eebbk_enhance_default unlabeled:file { getattr open read write setattr };
+allow hal_eebbk_enhance_default mnt_vendor_file:dir rw_dir_perms;
+allow hal_eebbk_enhance_default mnt_vendor_file:file create_file_perms;

@@ -1,0 +1,26 @@
+type vendor_legacy_service, domain;
+type vendor_legacy_service_exec, exec_type, vendor_file_type, file_type;
+
+init_daemon_domain(vendor_legacy_service)
+hwbinder_use(vendor_legacy_service)
+vndbinder_use(vendor_legacy_service)
+
+r_dir_file(vendor_legacy_service, vendor_file)
+r_dir_file(vendor_legacy_service, same_process_hal_file)
+allow vendor_legacy_service { vendor_file same_process_hal_file }:file rx_file_perms;
+
+allow vendor_legacy_service mnt_vendor_file:dir rw_dir_perms;
+allow vendor_legacy_service mnt_vendor_file:file create_file_perms;
+allow vendor_legacy_service { tee_device sctl_pm_device }:chr_file rw_file_perms;
+allow vendor_legacy_service block_device:dir search;
+allow vendor_legacy_service block_device:lnk_file r_file_perms;
+allow vendor_legacy_service sysfs:dir r_dir_perms;
+allow vendor_legacy_service sysfs:file rw_file_perms;
+allow vendor_legacy_service proc:dir r_dir_perms;
+allow vendor_legacy_service proc:file rw_file_perms;
+allow vendor_legacy_service proc_cmdline:file r_file_perms;
+allow vendor_legacy_service sysfs_wake_lock:file rw_file_perms;
+allow vendor_legacy_service self:global_capability2_class_set block_suspend;
+allow vendor_legacy_service pm_sys_block_device:blk_file r_file_perms;
+allow vendor_legacy_service self:capability { setuid setgid net_raw };
+get_prop(vendor_legacy_service, hwservicemanager_prop)

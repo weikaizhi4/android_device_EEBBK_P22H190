@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+     SPDX-License-Identifier: Apache-2.0
+-->
+<exceptions>
+    <!-- Recorder checks these permissions before starting its microphone FGS. -->
+    <exception package="org.lineageos.recorder">
+        <permission name="android.permission.READ_PHONE_STATE" fixed="false" />
+        <permission name="android.permission.POST_NOTIFICATIONS" fixed="false" />
+    </exception>
+</exceptions>

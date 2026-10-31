@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Adaptive brightness for the EEBbk UMS512 panels.
+
+  Android only exposes the auto-brightness setting when the framework has a
+  lux -> display brightness mapping, so provide one here. The panel peak used
+  for calibration is config_screenBrightnessNits; config_autoBrightnessLevels
+  has N entries and every value array has N + 1 entries.
+-->
+<resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
+
+    <!-- Ambient light levels in lux. -->
+    <integer-array name="config_autoBrightnessLevels">
+        <item>10</item>
+        <item>50</item>
+        <item>200</item>
+        <item>1000</item>
+        <item>4000</item>
+        <item>10000</item>
+    </integer-array>
+
+    <!-- Display brightness in nits, one entry per level plus the darkest. -->
+    <array name="config_autoBrightnessDisplayValuesNits">
+        <item>4.0</item>
+        <item>15.0</item>
+        <item>45.0</item>
+        <item>90.0</item>
+        <item>160.0</item>
+        <item>320.0</item>
+        <item>500.0</item>
+    </array>
+
+    <!-- Legacy backlight scale, 0-255 like /sys/class/backlight/sprd_backlight. -->
+    <integer-array name="config_autoBrightnessLcdBacklightValues">
+        <item>15</item>
+        <item>35</item>
+        <item>65</item>
+        <item>105</item>
+        <item>165</item>
+        <item>215</item>
+        <item>255</item>
+    </integer-array>
+
+    <!-- Peak panel brightness, used to calibrate the brightness slider. -->
+    <integer name="config_screenBrightnessNits">500</integer>
+
+
+    <!--
+      AOSP defaults this to false, and without it DisplayPowerController
+      ignores the lux mapping above (mUseSoftwareAutoBrightnessConfig stays
+      false and auto-brightness is reported unavailable).
+    -->
+    <bool name="config_automatic_brightness_available">true</bool>
+
+
+    <!--
+      The base tablet product disables the navigation bar, which also makes
+      Settings hide the navigation mode controls and leaves SystemUI's
+      edge-back (gesture) handler detached. This tablet has no hardware
+      navigation keys, so force the bar on and default to gestural nav.
+    -->
+    <bool name="config_showNavigationBar">true</bool>
+    <integer name="config_navBarInteractionMode">2</integer>
+
+</resources>

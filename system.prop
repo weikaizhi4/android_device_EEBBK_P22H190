@@ -1,0 +1,14 @@
+ro.sf.lcd_density=320
+ro.minui.default_rotation=ROTATION_RIGHT
+ro.vendor.minui.hwrotation=0
+ro.vendor.ko.mount.point=/mnt/vendor
+ro.vendor.product.partitionpath=/dev/block/by-name/
+ro.oem_unlock_supported=0
+bluetooth.profile.a2dp.source.enabled=true
+bluetooth.profile.a2dp.sink.enabled=false
+bluetooth.profile.avrcp.controller.enabled=false
+bluetooth.profile.avrcp.target.enabled=true
+bluetooth.profile.hfp.ag.enabled=true
+bluetooth.profile.gatt.enabled=true
+bluetooth.profile.hid.host.enabled=true
+persist.bluetooth.a2dp_offload.disabled=true

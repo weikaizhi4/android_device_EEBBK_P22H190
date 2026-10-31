@@ -1,0 +1,6 @@
+type logo_block_device, dev_type;
+type sprd_sensor_device, dev_type;
+type prodnv_block_device, dev_type;
+type sprd_rpmb_device, dev_type;
+type sctl_pm_device, dev_type;
+type pm_sys_block_device, dev_type;

@@ -1,0 +1,42 @@
+runtime_resource_overlay {
+    name: "EEBBK_NetworkStackOverlay",
+    resource_dirs: ["overlay/NetworkStackOverlay/res"],
+    manifest: "overlay/NetworkStackOverlay/AndroidManifest.xml",
+    product_specific: true,
+    certificate: "platform",
+    sdk_version: "current",
+}
+
+runtime_resource_overlay {
+    name: "EEBBK_NetworkStackOverlayGsi",
+    resource_dirs: ["overlay/NetworkStackOverlayGsi/res"],
+    manifest: "overlay/NetworkStackOverlayGsi/AndroidManifest.xml",
+    product_specific: true,
+    certificate: "platform",
+    sdk_version: "current",
+}
+
+runtime_resource_overlay {
+    name: "EEBBK_TetheringConfigOverlay",
+    resource_dirs: ["overlay/TetheringConfigOverlay/res"],
+    manifest: "overlay/TetheringConfigOverlay/AndroidManifest.xml",
+    product_specific: true,
+    certificate: "platform",
+    sdk_version: "current",
+}
+
+runtime_resource_overlay {
+    name: "EEBBK_TetheringConfigOverlayGsi",
+    resource_dirs: ["overlay/TetheringConfigOverlayGsi/res"],
+    manifest: "overlay/TetheringConfigOverlayGsi/AndroidManifest.xml",
+    product_specific: true,
+    certificate: "platform",
+    sdk_version: "current",
+}
+
+cc_library_shared {
+    name: "libeebbk_hidl_compat",
+    srcs: ["hidl_compat.c"],
+    vendor: true,
+    compile_multilib: "64",
+}

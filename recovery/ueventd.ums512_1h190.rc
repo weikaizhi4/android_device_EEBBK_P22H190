@@ -1,0 +1,56 @@
+/dev/apipe-pcm          0660     system      audio
+/dev/apipe-cmd-in       0660     system      audio
+/dev/apipe-cmd-out      0660     system      audio
+/sys/devices/platform/audiocp_boot agdsp 0660 audioserver audio
+/sys/devices/platform/audiocp_boot ldinfo 0660 audioserver audio
+/sys/devices/platform/audiocp_boot start 0660 audioserver audio
+/sys/devices/platform/audiocp_boot status 0660 audioserver audio
+/sys/devices/platform/audiocp_boot stop 0660 audioserver audio
+/dev/block/by-name/l_agdsp 0660 audioserver audio
+/dev/audio_dsp* 0666 audioserver audio
+/dev/audio_pipe* 0660 audioserver audio
+/dev/block/by-name/l_* 0660 system system
+/dev/block/by-name/pm_sys* 0660 system system
+/dev/data0_gnss 0666 system system
+/dev/sttygnss0 0660 system system
+/dev/spipe_gnss0 0660 system system
+/dev/spipe_gnss1 0660 system system
+/dev/slog_gnss 0660 system system
+/dev/slog_wcn0 0660 system system
+/dev/ttyS3 0660 system system
+/dev/ttyS4 0660 system system
+/dev/ttyS0 0660 system system
+/dev/power_ctl 0660 system system
+/dev/gnss_dbg 0660 system system
+/dev/fm 0660 media media
+/dev/ttyM0 0660 bluetooth net_bt_admin
+/dev/ttyM1 0660 bluetooth net_bt_admin
+/dev/trusty-ipc-dev0 0660 system system
+/dev/sttybt0 0660 bluetooth net_bt_admin
+/dev/ttyBT0 0660 bluetooth net_bt_admin
+/dev/stty_lte* 0660 radio system
+/dev/slog_lte 0660 system system
+/dev/sctl_pm 0660 system system
+/dev/sdiag_lte 0660 system system
+/dev/spipe_lte* 0660 system system
+/dev/ion 0666 system graphics
+/dev/gsp 0660 system graphics
+/dev/mali0 0666 system graphics
+/dev/sprd_jpg 0660 system camera
+/dev/sprd_jpg1 0660 system camera
+/dev/sprd_vsp 0660 system camera
+/dev/sprd_vpp 0660 system camera
+/dev/sprd_vsp_enc 0660 system camera
+/dev/sprd_image 0660 system camera
+/dev/sprd_isp 0660 system camera
+/dev/sprd_sensor 0660 system camera
+/dev/sprd_cpp 0660 system camera
+/dev/sprd_fd 0660 system camera
+/dev/input/event* 0660 system input
+/dev/rtc* 0660 system system
+/dev/block/mmcblk1p* 0660 root system
+/dev/block/mmcblk0rpmb 0660 system system
+/dev/mmcblk0rpmb 0660 system system
+/dev/block/by-name/miscdata 0660 system system
+/dev/block/by-name/persist 0660 system system
+/dev/block/by-name/sysdumpdb 0660 system system

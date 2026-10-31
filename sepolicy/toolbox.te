@@ -1,0 +1,2 @@
+# The boot-time zram swap setup runs mkswap/swapon through toybox.
+allow toolbox vendor_zram_device:blk_file rw_file_perms;

@@ -1,0 +1,8 @@
+allow hal_wifi_default self:capability sys_module;
+allow hal_wifi_default wifi_module_file:dir search;
+allow hal_wifi_default wifi_module_file:file r_file_perms;
+allow hal_wifi_default wifi_module_file:system module_load;
+allow hal_wifi_default mnt_vendor_file:dir search;
+allow hal_wifi_default mnt_vendor_file:file r_file_perms;
+allow hal_wifi_default wifi_fw_data_file:file rw_file_perms;
+set_prop(hal_wifi_default, vendor_wlan_firmware_version_prop)

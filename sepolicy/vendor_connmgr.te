@@ -1,0 +1,10 @@
+type vendor_connmgr_default, domain;
+type vendor_connmgr_default_exec, exec_type, vendor_file_type, file_type;
+type vendor_connmgr_hwservice, hwservice_manager_type;
+
+init_daemon_domain(vendor_connmgr_default)
+hwbinder_use(vendor_connmgr_default)
+binder_call(vendor_connmgr_default, hwservicemanager)
+add_hwservice(vendor_connmgr_default, vendor_connmgr_hwservice)
+allow vendor_connmgr_default self:netlink_kobject_uevent_socket create_socket_perms_no_ioctl;
+get_prop(vendor_connmgr_default, hwservicemanager_prop)

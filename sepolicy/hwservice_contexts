@@ -1,0 +1,4 @@
+vendor.sprd.hardware.enhance::IEnhance u:object_r:hal_eebbk_enhance_hwservice:s0
+vendor.sprd.hardware.connmgr::IConnmgr u:object_r:vendor_connmgr_hwservice:s0
+vendor.sprd.hardware.wcn::IWcnVendorInterface u:object_r:vendor_connmgr_hwservice:s0
+vendor.sprd.hardware.cplog_connmgr::IConnectControl u:object_r:vendor_connmgr_hwservice:s0

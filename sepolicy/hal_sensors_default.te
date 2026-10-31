@@ -1,0 +1,13 @@
+allow hal_sensors_default sysfs_sensorhub:file rw_file_perms;
+allow hal_sensors_default sysfs:file rw_file_perms;
+allow hal_sensors_default sysfs:dir r_dir_perms;
+allow hal_sensors_default iio_device:chr_file r_file_perms;
+allow hal_sensors_default iio_device:chr_file rw_file_perms;
+allow hal_sensors_default mnt_vendor_file:dir rw_dir_perms;
+allow hal_sensors_default mnt_vendor_file:file create_file_perms;
+
+# The legacy sensor HAL programs the IIO trigger and reads calibration data
+# through the vendor sensorhub sysfs hierarchy.
+allow hal_sensors_default sysfs:lnk_file r_file_perms;
+allow hal_sensors_default sysfs_sensorhub:dir r_dir_perms;
+allow hal_sensors_default sysfs_sensorhub:file rw_file_perms;

@@ -1,0 +1,1 @@
+# Device-specific vendor files are listed in proprietary-files-vendor.txt.

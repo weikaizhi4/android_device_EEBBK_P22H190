@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <bool name="config_dhcp_client_hostname">true</bool>
+    <integer name="config_captive_portal_dns_probe_timeout">6000</integer>
+    <string name="config_captive_portal_http_url" translatable="false">http://connect.rom.miui.com/generate_204</string>
+    <string name="config_captive_portal_https_url" translatable="false">https://connect.rom.miui.com/generate_204</string>
+    <string-array name="config_captive_portal_fallback_urls" translatable="false">
+        <item>http://connectivitycheck.platform.hicloud.com/generate_204</item>
+    </string-array>
+</resources>

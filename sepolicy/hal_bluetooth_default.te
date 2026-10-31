@@ -1,0 +1,18 @@
+allow hal_bluetooth_default vendor_data_file:dir search;
+allow hal_bluetooth_default vendor_data_file:dir { write add_name };
+allow hal_bluetooth_default vendor_data_file:file create_file_perms;
+allow hal_bluetooth_default mnt_vendor_file:dir search;
+allow hal_bluetooth_default mnt_vendor_file:file r_file_perms;
+allow hal_bluetooth_default bt_device:chr_file ioctl;
+allow hal_bluetooth_default proc_bluetooth_writable:file rw_file_perms;
+allowxperm hal_bluetooth_default bt_device:chr_file ioctl {
+    TIOCEXCL
+    TIOCNXCL
+    TCGETS
+    TCFLSH
+    TCSETS
+    TCSETSW
+    TCSETSF
+    TIOCMGET
+    TIOCMSET
+};

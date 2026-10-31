@@ -1,0 +1,29 @@
+diff --git a/services/camera/libcameraservice/device3/hidl/HidlCamera3Device.cpp b/services/camera/libcameraservice/device3/hidl/HidlCamera3Device.cpp
+index f2e618fba4..d53e75d410 100644
+--- a/services/camera/libcameraservice/device3/hidl/HidlCamera3Device.cpp
++++ b/services/camera/libcameraservice/device3/hidl/HidlCamera3Device.cpp
+@@ -71,6 +71,10 @@ namespace flags = com::android::internal::camera::flags;
+ 
+ namespace android {
+ 
++static bool forcePreviewSrgb() {
++    return property_get_bool("ro.vendor.camera.preview_srgb", false);
++}
++
+ hardware::graphics::common::V1_0::PixelFormat HidlCamera3Device::mapToPixelFormat(
+         int frameworkFormat) {
+     return (hardware::graphics::common::V1_0::PixelFormat) frameworkFormat;
+@@ -1182,9 +1186,11 @@ status_t HidlCamera3Device::HidlHalInterface::configureStreams(
+                     requestedConfiguration3_2.streams[i].dataSpace != src.overrideDataSpace;
+             // Override allowed with IMPLEMENTATION_DEFINED
+             dstStream->setFormatOverride(needFormatOverride);
+-            dstStream->setDataSpaceOverride(needDataspaceOverride);
++            const bool forceSrgb = forcePreviewSrgb() &&
++                    dst->stream_type == CAMERA_STREAM_OUTPUT;
++            dstStream->setDataSpaceOverride(needDataspaceOverride || forceSrgb);
+             dst->format = overrideFormat;
+-            dst->data_space = overrideDataSpace;
++            dst->data_space = forceSrgb ? HAL_DATASPACE_V0_SRGB : overrideDataSpace;
+         }
+ 
+         if (dst->stream_type == CAMERA_STREAM_INPUT) {

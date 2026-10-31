@@ -1,0 +1,6 @@
+ro.vendor.camera. u:object_r:vendor_camera_prop:s0 prefix string
+persist.vendor.cam. u:object_r:vendor_camera_prop:s0 prefix string
+persist.vendor.isp. u:object_r:vendor_camera_prop:s0 prefix string
+vendor.cam. u:object_r:vendor_camera_prop:s0 prefix string
+persist.vendor.audio.boot_completed u:object_r:vendor_audio_boot_completed_prop:s0 exact bool
+vendor.wlan.driver.version u:object_r:vendor_wlan_firmware_version_prop:s0 exact string
