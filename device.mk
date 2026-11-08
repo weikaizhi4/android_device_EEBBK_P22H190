@@ -25,8 +25,15 @@ PRODUCT_SYSTEM_PROPERTIES += \
     bluetooth.core.le.vendor_capabilities.enabled=0 \
     bluetooth.le.disable_apcf_extended_features=1
 
+ifeq ($(P22H190_UPDATER_FEED),)
+P22H190_UPDATER_FEED := UNOFFICIAL.json
+endif
+ifeq ($(P22H190_VARIANT),)
+P22H190_VARIANT := vanilla
+endif
 PRODUCT_SYSTEM_PROPERTIES += \
-    lineage.updater.uri=https://weikaizhi4.github.io/p22h190-ota/updates/P22H190/UNOFFICIAL.json
+    lineage.updater.uri=https://weikaizhi4.github.io/p22h190-ota/updates/P22H190/$(P22H190_UPDATER_FEED) \
+    ro.p22h190.variant=$(P22H190_VARIANT)
 PRODUCT_SOONG_NAMESPACES += $(LOCAL_PATH)
 
 PRODUCT_PACKAGE_OVERLAYS += $(LOCAL_PATH)/overlay
