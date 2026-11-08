@@ -1,0 +1,5 @@
+# uncrypt writes the bootloader control block on the misc partition so the
+# bootloader starts recovery and applies an OTA. misc_block_device is a public
+# type and domain.te already allowlists uncrypt for it, but the explicit allow
+# has to exist or uncrypt gets EACCES right after it finds the partition.
+allow uncrypt misc_block_device:blk_file rw_file_perms;

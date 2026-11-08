@@ -26,6 +26,9 @@
 /dev/block/mmcblk0p1 u:object_r:prodnv_block_device:s0
 /dev/block/mmcblk0p45 u:object_r:userdata_block_device:s0
 /dev/block/mmcblk0p27 u:object_r:pm_sys_block_device:s0
+# misc carries the bootloader control block. uncrypt writes the recovery
+# command there before rebooting, so it needs the standard OTA label.
+/dev/block/mmcblk0p4 u:object_r:misc_block_device:s0
 
 # The extracted P22H190 vendor HAL filenames differ from AOSP's generic
 # patterns.  Each mapping below is backed by the corresponding init RC and
