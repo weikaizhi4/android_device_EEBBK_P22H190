@@ -2,9 +2,13 @@ hal_client_domain(hal_camera_default, hal_power)
 vndbinder_use(hal_camera_default)
 allow hal_camera_default hal_graphics_mapper_hwservice:hwservice_manager find;
 allow hal_camera_default sprd_sensor_device:chr_file rw_file_perms;
-allow hal_camera_default vendor_data_file:dir r_dir_perms;
-allow hal_camera_default vendor_data_file:file r_file_perms;
+allow hal_camera_default vendor_data_file:dir { open read write add_name remove_name search };
+allow hal_camera_default vendor_data_file:file { read write create getattr setattr append unlink rename open };
 allow hal_camera_default sysfs_scene_frequency:file { getattr open write };
 allow hal_camera_default sysfs:file rw_file_perms;
+allow hal_camera_default system_server:binder { call transfer };
+allow system_server hal_camera_default:binder { call transfer };
+allow hal_camera_default hal_graphics_composer_default:fd use;
 set_prop(hal_camera_default, vendor_camera_prop)
+get_prop(hal_camera_default, vendor_camera_prop)
 get_prop(cameraserver, vendor_camera_prop)
