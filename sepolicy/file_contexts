@@ -18,10 +18,11 @@
 # Trusty policy and is granted to the corresponding standard HAL domains.
 /dev/trusty-ipc-dev0 u:object_r:tee_device:s0
 /dev/mmcblk0rpmb u:object_r:sprd_rpmb_device:s0
-# zram swap: the boot-time mkswap/swapon run as toolbox and need to
-# write this device, so give it a vendor owned label.
-/dev/block/zram[0-9]+ u:object_r:vendor_zram_device:s0
-/dev/zram[0-9]+       u:object_r:vendor_zram_device:s0
+# zram swap: fs_mgr runs mkswap/swapon from init, and init is only granted
+# write access to swap_block_device.  A vendor owned label here makes the
+# final swapon fail, so keep the platform type.
+/dev/block/zram[0-9]+ u:object_r:swap_block_device:s0
+/dev/zram[0-9]+       u:object_r:swap_block_device:s0
 /dev/sctl_pm u:object_r:sctl_pm_device:s0
 /dev/block/mmcblk0p1 u:object_r:prodnv_block_device:s0
 /dev/block/mmcblk0p45 u:object_r:userdata_block_device:s0

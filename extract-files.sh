@@ -415,6 +415,14 @@ function blob_fixup() {
     esac
 
     case "$1" in
+        vendor/etc/init/hw/init.ram.rc)
+            sed -i -E \
+                's|^(    write /sys/block/zram0/comp_algorithm[[:space:]]+)lz4$|\1zstd|' \
+                "$BLOB"
+            ;;
+    esac
+
+    case "$1" in
         vendor/etc/bluetooth_audio_policy_configuration_disable_offload.xml|\
         vendor/etc/audio/sku_sprd/bluetooth_audio_policy_configuration_disable_offload.xml|\
         vendor/etc/init/eebbk.graphics.composer-service.rc|\
