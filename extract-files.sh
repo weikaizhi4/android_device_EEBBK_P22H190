@@ -415,6 +415,12 @@ function blob_fixup() {
     esac
 
     case "$1" in
+        vendor/etc/audio_route.xml)
+            python3 "${MY_DIR}/scripts/patch-audio-route.py" "$BLOB"
+            ;;
+    esac
+
+    case "$1" in
         vendor/etc/init/hw/init.ram.rc)
             sed -i -E \
                 's|^(    write /sys/block/zram0/comp_algorithm[[:space:]]+)lz4$|\1zstd|' \
