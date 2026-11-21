@@ -25,6 +25,28 @@ function p22_replace_needed() {
     fi
 }
 
+function p22_set_soname() {
+    local NAME="$1"
+    local BLOB="$2"
+
+    if [ "$("$PATCHELF" --print-soname "$BLOB" 2>/dev/null)" = "$NAME" ]; then
+        return 0
+    fi
+
+    "$PATCHELF" --set-soname "$NAME" "$BLOB"
+}
+
+function p22_add_needed() {
+    local LIB="$1"
+    local BLOB="$2"
+
+    if "$PATCHELF" --print-needed "$BLOB" | grep -Fqx "$LIB"; then
+        return 0
+    fi
+
+    "$PATCHELF" --add-needed "$LIB" "$BLOB"
+}
+
 function p22_set_legacy_rpath() {
     local SOURCE="$1"
     local BLOB="$2"
@@ -42,6 +64,10 @@ function p22_set_legacy_rpath() {
             ;;
         *) return 0 ;;
     esac
+
+    if [ "$("$PATCHELF" --print-rpath "$BLOB")" = "$RPATH" ]; then
+        return 0
+    fi
 
     "$PATCHELF" --set-rpath "$RPATH" "$BLOB"
 }
@@ -103,6 +129,11 @@ function blob_fixup() {
             cp "${LINEAGE_ROOT}/vendor/${VENDOR}/${DEVICE}/audio/lib64/hw/audio.bluetooth.ums512.so" \
                 "$BLOB"
             ;;
+        vendor/lib64/android.hardware.audio.common-util.so|\
+        vendor/lib64/android.hardware.audio.common@6.0-util.so)
+            cp "${LINEAGE_ROOT}/vendor/${VENDOR}/${DEVICE}/audio/lib64/${1##*/}" \
+                "$BLOB"
+            ;;
         vendor/etc/primary_audio_policy_configuration.xml)
             cp "${LINEAGE_ROOT}/vendor/${VENDOR}/${DEVICE}/audio/config/primary_audio_policy_configuration.xml" \
                 "$BLOB"
@@ -120,7 +151,7 @@ function blob_fixup() {
         vendor/bin/hw/eebbk.graphics.composer-service)
             p22_replace_needed android.hardware.graphics.composer@2.1-resources.so \
                 libeebbk_p22h190_composer_resources.so "$BLOB"
-            "$PATCHELF" --add-needed libeebbk_hidl_compat.so "$BLOB"
+            p22_add_needed libeebbk_hidl_compat.so "$BLOB"
             p22_set_legacy_rpath "$1" "$BLOB"
             ;;
         vendor/bin/hw/android.hardware.drm@1.3-service.clearkey)
@@ -146,31 +177,31 @@ function blob_fixup() {
             ;;
         vendor/lib/libeebbk_p22h190_hidltransport.so|\
         vendor/lib64/libeebbk_p22h190_hidltransport.so)
-            "$PATCHELF" --set-soname libeebbk_p22h190_hidltransport.so "$BLOB"
+            p22_set_soname libeebbk_p22h190_hidltransport.so "$BLOB"
             ;;
         vendor/lib/libeebbk_p22h190_hwbinder.so|\
         vendor/lib64/libeebbk_p22h190_hwbinder.so)
-            "$PATCHELF" --set-soname libeebbk_p22h190_hwbinder.so "$BLOB"
+            p22_set_soname libeebbk_p22h190_hwbinder.so "$BLOB"
             ;;
         vendor/lib/libeebbk_p22h190_trusty.so|\
         vendor/lib64/libeebbk_p22h190_trusty.so)
-            "$PATCHELF" --set-soname libeebbk_p22h190_trusty.so "$BLOB"
+            p22_set_soname libeebbk_p22h190_trusty.so "$BLOB"
             ;;
         vendor/lib/libeebbk_p22h190_wpa_client.so)
-            "$PATCHELF" --set-soname libeebbk_p22h190_wpa_client.so "$BLOB"
+            p22_set_soname libeebbk_p22h190_wpa_client.so "$BLOB"
             ;;
         vendor/lib/libeebbk_p22h190_drm.so|\
         vendor/lib64/libeebbk_p22h190_drm.so)
-            "$PATCHELF" --set-soname libeebbk_p22h190_drm.so "$BLOB"
+            p22_set_soname libeebbk_p22h190_drm.so "$BLOB"
             ;;
         vendor/lib64/libeebbk_p22h190_keymaster4.so)
-            "$PATCHELF" --set-soname libeebbk_p22h190_keymaster4.so "$BLOB"
+            p22_set_soname libeebbk_p22h190_keymaster4.so "$BLOB"
             p22_replace_needed libkeymaster_messages.so \
                 libeebbk_p22h190_keymaster_messages.so "$BLOB"
             p22_set_legacy_rpath "$1" "$BLOB"
             ;;
         vendor/lib64/libeebbk_p22h190_keymaster41.so)
-            "$PATCHELF" --set-soname libeebbk_p22h190_keymaster41.so "$BLOB"
+            p22_set_soname libeebbk_p22h190_keymaster41.so "$BLOB"
             p22_replace_needed libkeymaster4.so \
                 libeebbk_p22h190_keymaster4.so "$BLOB"
             p22_replace_needed libkeymaster_messages.so \
@@ -178,15 +209,17 @@ function blob_fixup() {
             p22_set_legacy_rpath "$1" "$BLOB"
             ;;
         vendor/lib64/libeebbk_p22h190_keymaster_messages.so)
-            "$PATCHELF" --set-soname libeebbk_p22h190_keymaster_messages.so "$BLOB"
+            p22_set_soname libeebbk_p22h190_keymaster_messages.so "$BLOB"
             ;;
         vendor/lib64/libeebbk_p22h190_composer_resources.so)
-            "$PATCHELF" --set-soname libeebbk_p22h190_composer_resources.so "$BLOB"
+            p22_set_soname libeebbk_p22h190_composer_resources.so "$BLOB"
             p22_set_legacy_rpath "$1" "$BLOB"
             ;;
         vendor/lib64/eebbk-vndk30/libpuresoftkeymasterdevice.so)
             p22_replace_needed libkeymaster_messages.so \
                 libeebbk_p22h190_keymaster_messages.so "$BLOB"
+            p22_replace_needed libcutils.so \
+                libeebbk_p22h190_cutils.so "$BLOB"
             p22_set_legacy_rpath "$1" "$BLOB"
             ;;
         vendor/lib64/eebbk-vndk30/libkeymaster4_1support.so|\
@@ -237,7 +270,7 @@ function blob_fixup() {
         vendor/bin/hw/vendor.sprd.hardware.broadcastradio@2.0-service|\
         vendor/lib64/hw/android.hardware.memtrack@1.0-impl.so)
             p22_replace_needed libbase.so bbkbase.so "$BLOB"
-            "$PATCHELF" --add-needed bbkutil.so "$BLOB"
+            p22_add_needed bbkutil.so "$BLOB"
             p22_set_legacy_rpath "$1" "$BLOB"
             ;;
         vendor/bin/hw/android.hardware.health@2.1-service|\
@@ -258,16 +291,16 @@ function blob_fixup() {
             p22_set_legacy_rpath "$1" "$BLOB"
             ;;
         vendor/lib64/libeebbk_p22h190_keystore-engine-wifi-hidl.so)
-            "$PATCHELF" --set-soname libeebbk_p22h190_keystore-engine-wifi-hidl.so "$BLOB"
+            p22_set_soname libeebbk_p22h190_keystore-engine-wifi-hidl.so "$BLOB"
             p22_set_legacy_rpath "$1" "$BLOB"
             ;;
         vendor/lib64/libeebbk_p22h190_keystore-wifi-hidl.so)
-            "$PATCHELF" --set-soname libeebbk_p22h190_keystore-wifi-hidl.so "$BLOB"
+            p22_set_soname libeebbk_p22h190_keystore-wifi-hidl.so "$BLOB"
             p22_set_legacy_rpath "$1" "$BLOB"
             ;;
         vendor/lib64/libeebbk_p22h190_wifi_hal.so)
             python3 "${MY_DIR}/scripts/patch-wifi-module-hal.py" "$BLOB"
-            "$PATCHELF" --set-soname libeebbk_p22h190_wifi_hal.so "$BLOB"
+            p22_set_soname libeebbk_p22h190_wifi_hal.so "$BLOB"
             p22_set_legacy_rpath "$1" "$BLOB"
             ;;
         vendor/bin/hw/android.hardware.audio.service|\
@@ -285,6 +318,7 @@ function blob_fixup() {
             ;;
         vendor/lib/libeebbk_p22h190_nbaio_mono.so|\
         vendor/lib64/libeebbk_p22h190_nbaio_mono.so)
+            p22_set_soname libeebbk_p22h190_nbaio_mono.so "$BLOB"
             p22_replace_needed libaudioutils.so \
                 libeebbk_p22h190_audioutils.so "$BLOB"
             p22_set_legacy_rpath "$1" "$BLOB"
@@ -348,7 +382,9 @@ function blob_fixup() {
             p22_set_legacy_rpath "$1" "$BLOB"
             ;;
         vendor/bin/hw/android.hardware.media.omx@1.0-service)
-            "$PATCHELF" --set-rpath /vendor/lib/eebbk-vndk30 "$BLOB"
+            if [ "$("$PATCHELF" --print-rpath "$BLOB")" != /vendor/lib/eebbk-vndk30 ]; then
+                "$PATCHELF" --set-rpath /vendor/lib/eebbk-vndk30 "$BLOB"
+            fi
             ;;
         vendor/lib/libavservices_minijail.so)
             p22_set_legacy_rpath "$1" "$BLOB"
@@ -356,7 +392,14 @@ function blob_fixup() {
         vendor/bin/thermald)
             p22_set_legacy_rpath "$1" "$BLOB"
             ;;
-        vendor/bin/*)
+    esac
+
+    case "$1" in
+        vendor/bin/hw/hostapd|\
+        vendor/bin/hw/android.hardware.usb@1.1-service|\
+        vendor/bin/hw/android.hardware.power.stats@1.0-service.mock)
+            ;;
+        vendor/bin/*|vendor/lib/eebbk-vndk30/*|vendor/lib64/eebbk-vndk30/*)
             p22_set_legacy_rpath "$1" "$BLOB"
             ;;
     esac
@@ -371,7 +414,21 @@ function blob_fixup() {
             ;;
     esac
 
-    if [ -f "$BLOB" ] && file "$BLOB" | grep -q ELF; then
+    case "$1" in
+        vendor/etc/bluetooth_audio_policy_configuration_disable_offload.xml|\
+        vendor/etc/audio/sku_sprd/bluetooth_audio_policy_configuration_disable_offload.xml|\
+        vendor/etc/init/eebbk.graphics.composer-service.rc|\
+        vendor/etc/init/init.md.rc|\
+        vendor/etc/init/vendor.sprd.hardware.enhance@1.0-service.rc|\
+        vendor/etc/media_codecs.xml|\
+        vendor/etc/usb_audio_policy_configuration.xml|\
+        vendor/etc/vintf/manifest/android.hardware.keymaster@4.1-unisoc.service.xml)
+            python3 "${MY_DIR}/scripts/patch-vendor-text.py" "$BLOB"
+            ;;
+    esac
+
+    if [ "${P22H190_LIBUI_SHIM:-0}" = 1 ] &&
+        [ -f "$BLOB" ] && file "$BLOB" | grep -q ELF; then
         if "$PATCHELF" --print-needed "$BLOB" | grep -Fxq libui.so; then
             p22_replace_needed libui.so libeebbk_p22h190_ui.so "$BLOB"
             p22_set_legacy_rpath "$1" "$BLOB"
@@ -398,9 +455,25 @@ if [ ! -d "$PHDR_VENDOR_DIR" ]; then
     echo "Unable to find extracted vendor blobs at $PHDR_VENDOR_DIR"
     exit 1
 fi
+restore_local_artifacts() {
+    local repo="$LINEAGE_ROOT/vendor/$VENDOR/$DEVICE"
+    local artifact
+
+    git -C "$repo" rev-parse --git-dir >/dev/null 2>&1 || return 0
+
+    for artifact in \
+        proprietary/vendor/bin/install-recovery.sh \
+        proprietary/vendor/etc/recovery.img; do
+        if [ ! -e "$repo/$artifact" ]; then
+            git -C "$repo" checkout -- "$artifact" 2>/dev/null || true
+        fi
+    done
+}
+
+restore_local_artifacts
+python3 "$MY_DIR/scripts/repair-hwcomposer-layout.py" "$PHDR_VENDOR_DIR"
 python3 "$MY_DIR/scripts/fix-elf-phdr.py" "$PHDR_VENDOR_DIR"
-python3 "$MY_DIR/scripts/repair-hwcomposer-layout.py" \
-    "$PHDR_VENDOR_DIR/lib64/hw/hwcomposer.ums512.so"
+"$MY_DIR/scripts/prepare-vndk30-compat.sh"
 "$MY_DIR/scripts/verify-display-blobs.sh" \
     "$LINEAGE_ROOT/vendor/$VENDOR/$DEVICE/proprietary"
 "$MY_DIR/setup-makefiles.sh"

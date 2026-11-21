@@ -1,101 +1,211 @@
 import argparse
-import hashlib
 import struct
 from pathlib import Path
 
 from elftools.elf.elffile import ELFFile
 
-ORIGINAL_SHA256 = "4839f6ed631cfb588f27ef3c2456679b2c5782ba77895dd77db1dd4fe8878b32"
-OLD_PATH = b"/mnt/vendor/socko/sprdwl_ng.ko\0"
-NEW_PATH = b"/vendor/lib/modules/sprdwl_ng.ko\0"
+NEW_MODULE_PATH = b"/vendor/lib/modules/sprdwl_ng.ko\0"
+OLD_MODULE_PATH = b"/mnt/vendor/socko/sprdwl_ng.ko\0"
 MODULE_NAME = b"sprdwl_ng\0"
+PROC_MODULES = b"/proc/modules\0"
 IFACE_PATH = b"/sys/class/net/wlan0\0"
+READ_MODE = b"r\0"
+
+STATUS_SYMBOL = "is_wifi_driver_loaded"
+LOAD_SYMBOL = "wifi_load_driver"
+UNLOAD_SYMBOL = "wifi_unload_driver"
+PLT_SYMBOLS = ("fopen", "fclose")
+
 
 def adrp(reg, pc, target):
     pages = (target >> 12) - (pc >> 12)
     if not -(1 << 20) <= pages < (1 << 20):
-        raise ValueError("ADRP target out of range")
-    imm = pages & ((1 << 21) - 1)
-    return 0x90000000 | ((imm & 3) << 29) | ((imm >> 2) << 5) | reg
+        raise SystemExit("ADRP target out of range")
+    immediate = pages & ((1 << 21) - 1)
+    return 0x90000000 | ((immediate & 3) << 29) | ((immediate >> 2) << 5) | reg
 
-def add(reg, offset):
-    return 0x91000000 | (offset << 10) | (reg << 5) | reg
 
-def bl(pc, target):
+def add_immediate(reg, offset):
+    return 0x91000000 | ((offset & 0xFFF) << 10) | (reg << 5) | reg
+
+
+def branch_link(pc, target):
     if (target - pc) % 4:
-        raise ValueError("unaligned branch")
+        raise SystemExit("unaligned branch target")
     return 0x94000000 | (((target - pc) // 4) & ((1 << 26) - 1))
+
+
+def scan_adrp_add(data, start, end):
+    results = []
+    for offset in range(start, end - 4, 4):
+        first = struct.unpack_from("<I", data, offset)[0]
+        if (first & 0x9F000000) != 0x90000000:
+            continue
+        second = struct.unpack_from("<I", data, offset + 4)[0]
+        if (second & 0xFF800000) != 0x91000000:
+            continue
+        if (first & 0x1F) != (second & 0x1F):
+            continue
+        immediate = (((first >> 5) & 0x7FFFF) << 2) | ((first >> 29) & 3)
+        if immediate & (1 << 20):
+            immediate -= 1 << 21
+        page = (offset & ~0xFFF) + (immediate << 12)
+        shift = (second >> 22) & 1
+        target = page + (((second >> 10) & 0xFFF) << (12 if shift else 0))
+        results.append((offset, target))
+    return results
+
+
+def plt_addresses(path):
+    addresses = {}
+    with path.open("rb") as source:
+        elf = ELFFile(source)
+        dynsym = elf.get_section_by_name(".dynsym")
+        plt = elf.get_section_by_name(".plt")
+        rela = elf.get_section_by_name(".rela.plt") or elf.get_section_by_name(".rel.plt")
+        if not dynsym or not plt or not rela:
+            raise SystemExit(f"{path}: missing PLT metadata")
+        for index, relocation in enumerate(rela.iter_relocations()):
+            name = dynsym.get_symbol(relocation["r_info_sym"]).name
+            if name in PLT_SYMBOLS:
+                addresses[name] = plt["sh_addr"] + 32 + 16 * index
+    missing = [name for name in PLT_SYMBOLS if name not in addresses]
+    if missing:
+        raise SystemExit(f"{path}: unresolved PLT symbols {missing}")
+    return addresses
+
+
+def symbol_addresses(path):
+    wanted = {STATUS_SYMBOL, LOAD_SYMBOL, UNLOAD_SYMBOL}
+    found = {}
+    with path.open("rb") as source:
+        elf = ELFFile(source)
+        dynsym = elf.get_section_by_name(".dynsym")
+        if not dynsym:
+            raise SystemExit(f"{path}: missing .dynsym")
+        for symbol in dynsym.iter_symbols():
+            if symbol.name in wanted:
+                found[symbol.name] = (symbol["st_value"], symbol["st_size"])
+    missing = [name for name in wanted if name not in found]
+    if missing:
+        raise SystemExit(f"{path}: missing symbols {missing}")
+    return found
+
+
+def locate(data, needle, description):
+    offset = data.find(needle)
+    if offset < 0:
+        raise SystemExit(f"cannot locate {description}")
+    return offset
+
+
+def status_stub(function, fopen, fclose, iface, mode):
+    program = [
+        0xA9BF7BFD,
+        0x910003FD,
+        adrp(0, function + 8, iface),
+        add_immediate(0, iface),
+        adrp(1, function + 16, mode),
+        add_immediate(1, mode),
+        branch_link(function + 24, fopen),
+        0xB40000A0,
+        branch_link(function + 32, fclose),
+        0x52800020,
+        0xA8C17BFD,
+        0xD65F03C0,
+        0x2A1F03E0,
+        0xA8C17BFD,
+        0xD65F03C0,
+    ]
+    return struct.pack("<" + "I" * len(program), *program)
+
 
 def patch(path):
     data = bytearray(path.read_bytes())
-    digest = hashlib.sha256(data).hexdigest()
-    if digest != ORIGINAL_SHA256:
-        raise ValueError(f"unexpected Wi-Fi HAL SHA-256: {digest}")
+    if data[:4] != b"\x7fELF":
+        raise SystemExit(f"{path}: not an ELF file")
 
     with path.open("rb") as source:
         elf = ELFFile(source)
-        if elf["e_machine"] != "EM_AARCH64":
-            raise ValueError("expected AArch64 ELF")
         text = elf.get_section_by_name(".text")
-        rodata = elf.get_section_by_name(".rodata")
-        symbols = elf.get_section_by_name(".dynsym")
-        if not text or not rodata or not symbols:
-            raise ValueError("missing ELF sections")
-        if text["sh_addr"] != text["sh_offset"] or rodata["sh_addr"] != rodata["sh_offset"]:
-            raise ValueError("unexpected ELF section layout")
+        if not text:
+            raise SystemExit(f"{path}: missing .text")
+        if text["sh_addr"] != text["sh_offset"]:
+            raise SystemExit(f"{path}: .text is not identity mapped")
+        text_start = text["sh_addr"]
+        text_end = text_start + text["sh_size"]
 
-        def symbol(name, address):
-            matches = symbols.get_symbol_by_name(name)
-            if not matches or len(matches) != 1 or matches[0]["st_value"] != address:
-                raise ValueError(f"unexpected symbol: {name}")
-            return matches[0]
+    symbols = symbol_addresses(path)
+    plt = plt_addresses(path)
 
-        loaded = symbol("is_wifi_driver_loaded", 0x3E1C4)
-        loader = symbol("wifi_load_driver", 0x3E3A0)
-        unload = symbol("wifi_unload_driver", 0x3E5D4)
-        if data[0x161F1:0x161F1 + len(OLD_PATH)] != OLD_PATH:
-            raise ValueError("unexpected factory module path")
-        if data[0x16210:0x16211] != b"\0" or data[0x16211:0x16211 + len(MODULE_NAME)] != MODULE_NAME:
-            raise ValueError("unexpected module name")
-        if data[0x161E3:0x161F1] != b"/proc/modules\0":
-            raise ValueError("unexpected module status path")
-        if data[0x11BDB:0x11BDB + len(IFACE_PATH)] != IFACE_PATH:
-            raise ValueError("unexpected WLAN interface path")
-        if data[0x11BF0:0x11BF2] != b"r\0":
-            raise ValueError("unexpected fopen mode")
+    has_new_path = NEW_MODULE_PATH in data
+    has_old_path = OLD_MODULE_PATH in data
+    has_proc = PROC_MODULES in data
 
-        start = loaded["st_value"]
-        check = [
-            0xA9BF7BFD, 0x910003FD,
-            adrp(0, start + 8, 0x11BDB), add(0, 0xBDB),
-            adrp(1, start + 16, 0x11BF0), add(1, 0xBF0),
-            bl(start + 24, 0x3F030), 0xB40000A0,
-            bl(start + 32, 0x3F050), 0x52800020,
-            0xA8C17BFD, 0xD65F03C0,
-            0x2A1F03E0, 0xA8C17BFD, 0xD65F03C0,
-        ]
-        check = struct.pack("<" + "I" * len(check), *check)
-        if len(check) > loaded["st_size"]:
-            raise ValueError("driver status replacement too large")
-        data[start:start + len(check)] = check
+    if has_old_path and has_proc:
+        path_offset = data.find(OLD_MODULE_PATH)
+        name_offset = data.find(MODULE_NAME)
+        status_offset = data.find(PROC_MODULES)
+        if name_offset < 0:
+            raise SystemExit(f"{path}: cannot locate module name")
+        need = path_offset + len(NEW_MODULE_PATH)
+        limit = name_offset + len(MODULE_NAME)
+        if need > limit:
+            raise SystemExit(f"{path}: no room for the new module path")
+        if len(MODULE_NAME) > len(PROC_MODULES):
+            raise SystemExit(f"{path}: module name does not fit the freed slot")
+        if (status_offset >> 12) != (name_offset >> 12):
+            raise SystemExit(f"{path}: module name slot is in a different page")
+    elif has_new_path and not has_proc:
+        print(f"already patched: {path}")
+        return 0
+    else:
+        raise SystemExit(f"{path}: unrecognised module path layout")
 
-        data[0x161E3:0x161E3 + len(MODULE_NAME)] = MODULE_NAME
-        data[0x161F1:0x161F1 + len(NEW_PATH)] = NEW_PATH
-        old_ref = struct.pack("<I", add(0, 0x211))
-        new_ref = struct.pack("<I", add(0, 0x1E3))
-        first = unload["st_value"]
-        last = first + unload["st_size"]
-        original_unload = bytes(data[first:last])
-        if original_unload.count(old_ref) != 10:
-            raise ValueError("unexpected module name references in unload function")
-        data[first:last] = original_unload.replace(old_ref, new_ref)
-        if data[loader["st_value"] + 0x34:loader["st_value"] + 0x38] != struct.pack("<I", add(19, 0x1F1)):
-            raise ValueError("unexpected module path reference in load function")
+    iface_offset = locate(data, IFACE_PATH, "WLAN interface path")
+    mode_offset = iface_offset + len(IFACE_PATH)
+    if data[mode_offset:mode_offset + len(READ_MODE)] != READ_MODE:
+        raise SystemExit(f"{path}: fopen mode does not follow the interface path")
+
+    references = [entry for entry in scan_adrp_add(data, text_start, text_end)
+                  if entry[1] == name_offset]
+    if not references:
+        raise SystemExit(f"{path}: no references to the module name")
+
+    data[status_offset:status_offset + len(MODULE_NAME)] = MODULE_NAME
+    data[path_offset:path_offset + len(NEW_MODULE_PATH)] = NEW_MODULE_PATH
+
+    for offset, _ in references:
+        instruction = struct.unpack_from("<I", data, offset + 4)[0]
+        immediate = status_offset & 0xFFF
+        instruction = (instruction & ~(0xFFF << 10)) | (immediate << 10)
+        struct.pack_into("<I", data, offset + 4, instruction)
+
+    function, size = symbols[STATUS_SYMBOL]
+    stub = status_stub(function, plt["fopen"], plt["fclose"], iface_offset, mode_offset)
+    if len(stub) > size:
+        raise SystemExit(f"{path}: {STATUS_SYMBOL} is too small for the replacement")
+    data[function:function + len(stub)] = stub
+
+    load = symbols[LOAD_SYMBOL]
+    unload = symbols[UNLOAD_SYMBOL]
+    for name, entry in ((LOAD_SYMBOL, load), (UNLOAD_SYMBOL, unload)):
+        for offset, target in scan_adrp_add(data, entry[0], entry[0] + entry[1]):
+            if target in (path_offset, status_offset):
+                continue
+            if target == name_offset:
+                raise SystemExit(f"{path}: {name} still points at the old module name")
 
     path.write_bytes(data)
-    print(f"patched {path}: {hashlib.sha256(data).hexdigest()}")
+    print(f"patched {path}")
+    return 0
+
+
+def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("path", type=Path)
+    return patch(parser.parse_args().path)
+
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("path", type=Path)
-    patch(parser.parse_args().path)
+    raise SystemExit(main())

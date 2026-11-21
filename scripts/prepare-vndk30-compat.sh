@@ -63,3 +63,27 @@ prepare_arch() {
 
 prepare_arch arch-arm-armv8-a "$OUTPUT_DIR/lib/eebbk-vndk30" /vendor/lib/eebbk-vndk30
 prepare_arch arch-arm64-armv8-a "$OUTPUT_DIR/lib64/eebbk-vndk30" /vendor/lib64/eebbk-vndk30
+
+prepare_variant() {
+    local SOURCE="$1"
+    local DEST_DIR="$2"
+    local NAME="$3"
+    local RUNTIME_DIR="$4"
+
+    cp "$SOURCE" "$DEST_DIR/$NAME"
+    "$PATCHELF" --set-soname "$NAME" "$DEST_DIR/$NAME"
+    "$PATCHELF" --set-rpath "$RUNTIME_DIR" "$DEST_DIR/$NAME"
+}
+
+BASE_ARM64="$ROOT_DIR/prebuilts/vndk/v30/arm64/arch-arm64-armv8-a/shared/vndk-sp/libbase.so"
+CUTILS_ARM64="$ROOT_DIR/prebuilts/vndk/v30/arm64/arch-arm64-armv8-a/shared/vndk-sp/libcutils.so"
+BASE_ARM="$ROOT_DIR/prebuilts/vndk/v30/arm64/arch-arm-armv8-a/shared/vndk-sp/libbase.so"
+CUTILS_ARM="$ROOT_DIR/prebuilts/vndk/v30/arm64/arch-arm-armv8-a/shared/vndk-sp/libcutils.so"
+
+prepare_variant "$BASE_ARM64" "$OUTPUT_DIR/lib64/eebbk-vndk30" bbkbase.so /vendor/lib64/eebbk-vndk30
+prepare_variant "$CUTILS_ARM64" "$OUTPUT_DIR/lib64/eebbk-vndk30" bbkutil.so /vendor/lib64/eebbk-vndk30
+"$PATCHELF" --replace-needed libbase.so bbkbase.so "$OUTPUT_DIR/lib64/eebbk-vndk30/bbkutil.so"
+prepare_variant "$BASE_ARM64" "$OUTPUT_DIR/lib64/eebbk-vndk30" libeebbk_p22h190_base.so /vendor/lib64/eebbk-vndk30
+prepare_variant "$BASE_ARM" "$OUTPUT_DIR/lib/eebbk-vndk30" libeebbk_p22h190_base.so /vendor/lib/eebbk-vndk30
+prepare_variant "$CUTILS_ARM64" "$OUTPUT_DIR/lib64/eebbk-vndk30" libeebbk_p22h190_cutils.so /vendor/lib64/eebbk-vndk30
+prepare_variant "$CUTILS_ARM" "$OUTPUT_DIR/lib/eebbk-vndk30" libeebbk_p22h190_cutils.so /vendor/lib/eebbk-vndk30

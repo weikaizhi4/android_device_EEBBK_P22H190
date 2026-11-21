@@ -918,7 +918,6 @@ vendor/lib64/hw/gsp.ums512.so
 vendor/lib64/hw/hwcomposer.ums512.so
 vendor/lib64/hw/memtrack.ums512.so
 vendor/lib64/hw/sensors.ums512.so
-vendor/lib64/hw/test.so
 vendor/lib64/hw/vendor.sprd.hardware.aprd@1.0-impl.so
 vendor/lib64/hw/vendor.sprd.hardware.connmgr@1.0-impl.so
 vendor/lib64/hw/vendor.sprd.hardware.cplog_connmgr@1.0-impl.so
