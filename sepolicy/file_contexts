@@ -8,7 +8,7 @@
 # The WCN HAL loads the driver from /vendor/lib/modules when the socko
 # partition is not the source; label it the same way so the existing
 # hal_wifi_default module_load allow matches.
-/vendor/lib/modules/sprdwl_ng\.ko  u:object_r:wifi_module_file:s0
+/vendor_dlkm/lib/modules/sprdwl_ng\.ko  u:object_r:wifi_module_file:s0
 /mnt/vendor                     u:object_r:mnt_vendor_file:s0
 /data/vendor/wifi/fwpath       u:object_r:wifi_fw_data_file:s0
 /data/vendor/bluetooth(/.*)?     u:object_r:vendor_data_file:s0

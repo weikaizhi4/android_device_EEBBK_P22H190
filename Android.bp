@@ -40,3 +40,13 @@ cc_library_shared {
     vendor: true,
     compile_multilib: "64",
 }
+
+// Kernel modules moved to the vendor_dlkm partition. The factory Wi-Fi HAL and
+// a few vendor scripts still open them through /vendor/lib/modules, so keep that
+// path working as a link to the real location.
+install_symlink {
+    name: "vendor_lib_modules_symlink",
+    installed_location: "lib/modules",
+    symlink_target: "/vendor_dlkm/lib/modules",
+    vendor: true,
+}

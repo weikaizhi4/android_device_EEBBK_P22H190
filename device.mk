@@ -53,7 +53,8 @@ PRODUCT_PACKAGES += \
 PRODUCT_PACKAGES += \
     libhwc2on1adapter \
     libhwc2onfbadapter \
-    libeebbk_hidl_compat
+    libeebbk_hidl_compat \
+    vendor_lib_modules_symlink
 
 PRODUCT_COPY_FILES += \
     vendor/eebbk/p22h190/proprietary/vendor/lib64/eebbk-vndk30/bbkbase.so:$(TARGET_COPY_OUT_VENDOR)/lib64/eebbk-vndk30/bbkbase.so \

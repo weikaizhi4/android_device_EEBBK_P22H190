@@ -42,6 +42,7 @@ system                                           /system             erofs   ro 
 system_ext                                        /system_ext         erofs   ro                 wait,logical,first_stage_mount
 vendor                                             /vendor             erofs   ro                 wait,logical,first_stage_mount
 product                                            /product            erofs   ro                 wait,logical,first_stage_mount
+vendor_dlkm                                        /vendor_dlkm        ext4    ro                 wait,logical,first_stage_mount
 /dev/block/by-name/metadata                      /metadata           ext4    nodev,noatime,nosuid,errors=panic wait,formattable,first_stage_mount,check
 /dev/block/by-name/userdata                      /data               f2fs    noatime,nosuid,nodev,discard,inline_xattr,inline_data,fsync_mode=nobarrier latemount,wait,check,reservedsize=128M,checkpoint=fs,formattable
 /dev/block/by-name/prodnv                        /mnt/vendor         ext4    noatime,nosuid,nodev,nomblk_io_submit,noauto_da_alloc wait,check

@@ -361,6 +361,16 @@ function blob_fixup() {
             ;;
     esac
 
+    # Kernel modules moved from /vendor/lib/modules to the vendor_dlkm
+    # partition. The factory init scripts load them by absolute path, so rewrite
+    # those references. Running this twice is harmless: the replacement no
+    # longer contains the pattern it matches.
+    case "$1" in
+        vendor/etc/init/*.rc|vendor/etc/init/hw/*.rc|vendor/bin/*.sh)
+            sed -i 's|/vendor/lib/modules/|/vendor_dlkm/lib/modules/|g' "$BLOB"
+            ;;
+    esac
+
     if [ -f "$BLOB" ] && file "$BLOB" | grep -q ELF; then
         if "$PATCHELF" --print-needed "$BLOB" | grep -Fxq libui.so; then
             p22_replace_needed libui.so libeebbk_p22h190_ui.so "$BLOB"

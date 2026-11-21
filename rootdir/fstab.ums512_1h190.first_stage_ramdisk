@@ -2,4 +2,5 @@ system /system erofs ro wait,logical,first_stage_mount
 system_ext /system_ext erofs ro wait,logical,first_stage_mount
 vendor /vendor erofs ro wait,logical,first_stage_mount
 product /product erofs ro wait,logical,first_stage_mount
+vendor_dlkm /vendor_dlkm ext4 ro wait,logical,first_stage_mount
 /dev/block/by-name/metadata /metadata ext4 nodev,noatime,nosuid,errors=panic wait,formattable,first_stage_mount,check
