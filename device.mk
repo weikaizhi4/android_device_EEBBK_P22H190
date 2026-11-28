@@ -75,10 +75,6 @@ PRODUCT_PACKAGES -= \
     libtinyalsa
 
 PRODUCT_COPY_FILES += \
-    vendor/eebbk/p22h190/proprietary/vendor/bin/install-recovery.sh:$(TARGET_COPY_OUT_VENDOR)/bin/install-recovery.sh \
-    vendor/eebbk/p22h190/proprietary/vendor/etc/recovery.img:$(TARGET_COPY_OUT_VENDOR)/etc/recovery.img
-
-PRODUCT_COPY_FILES += \
     $(LOCAL_PATH)/recovery/init.recovery.ums512_1h190.rc:root/init.recovery.ums512_1h190.rc \
     $(LOCAL_PATH)/recovery/ueventd.ums512_1h190.rc:root/ueventd.ums512_1h190.rc
 

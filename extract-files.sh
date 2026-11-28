@@ -469,22 +469,6 @@ if [ ! -d "$PHDR_VENDOR_DIR" ]; then
     echo "Unable to find extracted vendor blobs at $PHDR_VENDOR_DIR"
     exit 1
 fi
-restore_local_artifacts() {
-    local repo="$LINEAGE_ROOT/vendor/$VENDOR/$DEVICE"
-    local artifact
-
-    git -C "$repo" rev-parse --git-dir >/dev/null 2>&1 || return 0
-
-    for artifact in \
-        proprietary/vendor/bin/install-recovery.sh \
-        proprietary/vendor/etc/recovery.img; do
-        if [ ! -e "$repo/$artifact" ]; then
-            git -C "$repo" checkout -- "$artifact" 2>/dev/null || true
-        fi
-    done
-}
-
-restore_local_artifacts
 python3 "$MY_DIR/scripts/repair-hwcomposer-layout.py" "$PHDR_VENDOR_DIR"
 python3 "$MY_DIR/scripts/fix-elf-phdr.py" "$PHDR_VENDOR_DIR"
 "$MY_DIR/scripts/prepare-vndk30-compat.sh"
